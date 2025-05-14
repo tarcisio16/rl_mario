@@ -1,0 +1,282 @@
+[
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "gymnasium",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "gymnasium",
+        "description": "gymnasium",
+        "detail": "gymnasium",
+        "documentation": {}
+    },
+    {
+        "label": "gym_super_mario_bros",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "gym_super_mario_bros",
+        "description": "gym_super_mario_bros",
+        "detail": "gym_super_mario_bros",
+        "documentation": {}
+    },
+    {
+        "label": "gym_super_mario_bros.actions",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "gym_super_mario_bros.actions",
+        "description": "gym_super_mario_bros.actions",
+        "detail": "gym_super_mario_bros.actions",
+        "documentation": {}
+    },
+    {
+        "label": "SIMPLE_MOVEMENT",
+        "importPath": "gym_super_mario_bros.actions",
+        "description": "gym_super_mario_bros.actions",
+        "isExtraImport": true,
+        "detail": "gym_super_mario_bros.actions",
+        "documentation": {}
+    },
+    {
+        "label": "SIMPLE_MOVEMENT",
+        "importPath": "gym_super_mario_bros.actions",
+        "description": "gym_super_mario_bros.actions",
+        "isExtraImport": true,
+        "detail": "gym_super_mario_bros.actions",
+        "documentation": {}
+    },
+    {
+        "label": "SIMPLE_MOVEMENT",
+        "importPath": "gym_super_mario_bros.actions",
+        "description": "gym_super_mario_bros.actions",
+        "isExtraImport": true,
+        "detail": "gym_super_mario_bros.actions",
+        "documentation": {}
+    },
+    {
+        "label": "JoypadSpace",
+        "importPath": "nes_py.wrappers",
+        "description": "nes_py.wrappers",
+        "isExtraImport": true,
+        "detail": "nes_py.wrappers",
+        "documentation": {}
+    },
+    {
+        "label": "JoypadSpace",
+        "importPath": "nes_py.wrappers",
+        "description": "nes_py.wrappers",
+        "isExtraImport": true,
+        "detail": "nes_py.wrappers",
+        "documentation": {}
+    },
+    {
+        "label": "JoypadSpace",
+        "importPath": "nes_py.wrappers",
+        "description": "nes_py.wrappers",
+        "isExtraImport": true,
+        "detail": "nes_py.wrappers",
+        "documentation": {}
+    },
+    {
+        "label": "PPO",
+        "importPath": "stable_baselines3",
+        "description": "stable_baselines3",
+        "isExtraImport": true,
+        "detail": "stable_baselines3",
+        "documentation": {}
+    },
+    {
+        "label": "PPO",
+        "importPath": "stable_baselines3",
+        "description": "stable_baselines3",
+        "isExtraImport": true,
+        "detail": "stable_baselines3",
+        "documentation": {}
+    },
+    {
+        "label": "DummyVecEnv",
+        "importPath": "stable_baselines3.common.vec_env",
+        "description": "stable_baselines3.common.vec_env",
+        "isExtraImport": true,
+        "detail": "stable_baselines3.common.vec_env",
+        "documentation": {}
+    },
+    {
+        "label": "VecFrameStack",
+        "importPath": "stable_baselines3.common.vec_env",
+        "description": "stable_baselines3.common.vec_env",
+        "isExtraImport": true,
+        "detail": "stable_baselines3.common.vec_env",
+        "documentation": {}
+    },
+    {
+        "label": "DummyVecEnv",
+        "importPath": "stable_baselines3.common.vec_env",
+        "description": "stable_baselines3.common.vec_env",
+        "isExtraImport": true,
+        "detail": "stable_baselines3.common.vec_env",
+        "documentation": {}
+    },
+    {
+        "label": "VecFrameStack",
+        "importPath": "stable_baselines3.common.vec_env",
+        "description": "stable_baselines3.common.vec_env",
+        "isExtraImport": true,
+        "detail": "stable_baselines3.common.vec_env",
+        "documentation": {}
+    },
+    {
+        "label": "cv2",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "cv2",
+        "description": "cv2",
+        "detail": "cv2",
+        "documentation": {}
+    },
+    {
+        "label": "numpy",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "numpy",
+        "description": "numpy",
+        "detail": "numpy",
+        "documentation": {}
+    },
+    {
+        "label": "make_env",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "state_preprocessor",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "make_env",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "state_preprocessor",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "torch",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "torch",
+        "description": "torch",
+        "detail": "torch",
+        "documentation": {}
+    },
+    {
+        "label": "wandb",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "wandb",
+        "description": "wandb",
+        "detail": "wandb",
+        "documentation": {}
+    },
+    {
+        "label": "spaces",
+        "importPath": "gym",
+        "description": "gym",
+        "isExtraImport": true,
+        "detail": "gym",
+        "documentation": {}
+    },
+    {
+        "label": "model",
+        "kind": 5,
+        "importPath": "play",
+        "description": "play",
+        "peekOfCode": "model = PPO.load(\"ppo_mario\")\n# Initialize the environment\nenv = make_env(render_mode=\"human\", action_space=SIMPLE_MOVEMENT, version=\"SuperMarioBros-v1\")\nenv = DummyVecEnv([lambda: env])\nenv = VecFrameStack(env, n_stack=4)\n# Reset the environment\nobs= env.reset()\ndone = False\nwhile not done:\n    # Preprocess the observation if necessary",
+        "detail": "play",
+        "documentation": {}
+    },
+    {
+        "label": "env",
+        "kind": 5,
+        "importPath": "play",
+        "description": "play",
+        "peekOfCode": "env = make_env(render_mode=\"human\", action_space=SIMPLE_MOVEMENT, version=\"SuperMarioBros-v1\")\nenv = DummyVecEnv([lambda: env])\nenv = VecFrameStack(env, n_stack=4)\n# Reset the environment\nobs= env.reset()\ndone = False\nwhile not done:\n    # Preprocess the observation if necessary\n    # obs = preprocess_observation(obs)\n    # Predict the action",
+        "detail": "play",
+        "documentation": {}
+    },
+    {
+        "label": "env",
+        "kind": 5,
+        "importPath": "play",
+        "description": "play",
+        "peekOfCode": "env = DummyVecEnv([lambda: env])\nenv = VecFrameStack(env, n_stack=4)\n# Reset the environment\nobs= env.reset()\ndone = False\nwhile not done:\n    # Preprocess the observation if necessary\n    # obs = preprocess_observation(obs)\n    # Predict the action\n    action, _ = model.predict(obs, deterministic=True)",
+        "detail": "play",
+        "documentation": {}
+    },
+    {
+        "label": "env",
+        "kind": 5,
+        "importPath": "play",
+        "description": "play",
+        "peekOfCode": "env = VecFrameStack(env, n_stack=4)\n# Reset the environment\nobs= env.reset()\ndone = False\nwhile not done:\n    # Preprocess the observation if necessary\n    # obs = preprocess_observation(obs)\n    # Predict the action\n    action, _ = model.predict(obs, deterministic=True)\n    # Take a step in the environment",
+        "detail": "play",
+        "documentation": {}
+    },
+    {
+        "label": "done",
+        "kind": 5,
+        "importPath": "play",
+        "description": "play",
+        "peekOfCode": "done = False\nwhile not done:\n    # Preprocess the observation if necessary\n    # obs = preprocess_observation(obs)\n    # Predict the action\n    action, _ = model.predict(obs, deterministic=True)\n    # Take a step in the environment\n    obs, reward, done,  info = env.step(action)\n    # Render the environment\n    env.render()",
+        "detail": "play",
+        "documentation": {}
+    },
+    {
+        "label": "CustomJoypadSpace",
+        "kind": 6,
+        "importPath": "utils",
+        "description": "utils",
+        "peekOfCode": "class CustomJoypadSpace(JoypadSpace):\n    def __init__(self, env, action_space):\n        super().__init__(env, action_space)\n        self.observation_space = spaces.Box(\n            low=0,\n            high=255,\n            shape=(84, 84, 1),\n            dtype=np.uint8\n        )\n    def reset(self, **kwargs):",
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "make_env",
+        "kind": 2,
+        "importPath": "utils",
+        "description": "utils",
+        "peekOfCode": "def make_env(render_mode=None, action_space=SIMPLE_MOVEMENT, version=\"SuperMarioBros-v0\"):\n    env = gym_super_mario_bros.make(\n        version,\n        apply_api_compatibility=True,\n        render_mode=render_mode\n    )\n    env = CustomJoypadSpace(env, SIMPLE_MOVEMENT)\n    return env\ndef state_preprocessor(frame):\n    # state is RGB images of shape (240, 256, 3), convert to grayscale and resize to (84, 84) and normalize",
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "state_preprocessor",
+        "kind": 2,
+        "importPath": "utils",
+        "description": "utils",
+        "peekOfCode": "def state_preprocessor(frame):\n    # state is RGB images of shape (240, 256, 3), convert to grayscale and resize to (84, 84) and normalize\n    frame = cv2.resize(cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY), (84, 84), interpolation=cv2.INTER_AREA) / 255.0\n    # add a channel dimension\n    frame = np.expand_dims(frame, axis=-1)\n    return frame",
+        "detail": "utils",
+        "documentation": {}
+    }
+]
