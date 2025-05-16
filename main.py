@@ -13,15 +13,15 @@ import argparse
 
 ENVIRONMENT   = "SuperMarioBros-v0"
 GAMMA         = 0.99
-MOVEMENTS   = SIMPLE_MOVEMENT
+MOVEMENTS   =  RIGHT_ONLY  
 NUM_EPISODES  = 100
 EPSILON       = 1.0 
-EPSILON_DECAY = 0.9
-EPSILON_MIN   = 0.0001
+EPSILON_DECAY = 0.99999975
+EPSILON_MIN   = 0.00001
 LEARNING_RATE = 0.00025
 BUFFER_SIZE   = 10_000
 SYNC_RATE     = 10000
-IDLE_STEPS    = 1000
+IDLE_STEPS    = 1_000
 LOSS_FN       = torch.nn.SmoothL1Loss()
 DEVICE = (
     torch.device("cuda") if torch.cuda.is_available()
@@ -115,6 +115,7 @@ def main():
             next_obs, reward, term, trunc, _ = env.step(action)
             done = term or trunc
             obs = next_obs
+            time.sleep(0.05)
             
             
 
