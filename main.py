@@ -10,17 +10,18 @@ from tqdm import tqdm
 import time
 import argparse
 
+
 ENVIRONMENT   = "SuperMarioBros-v0"
 GAMMA         = 0.99
 MOVEMENTS   = SIMPLE_MOVEMENT
 NUM_EPISODES  = 100
-BATCH_SIZE    = 8
 EPSILON       = 1.0 
-EPSILON_DECAY = 0.99999999975
-EPSILON_MIN   = 0.1
+EPSILON_DECAY = 0.9
+EPSILON_MIN   = 0.0001
 LEARNING_RATE = 0.00025
 BUFFER_SIZE   = 10_000
 SYNC_RATE     = 10000
+IDLE_STEPS    = 1000
 LOSS_FN       = torch.nn.SmoothL1Loss()
 DEVICE = (
     torch.device("cuda") if torch.cuda.is_available()
@@ -43,27 +44,37 @@ def main():
         default="models/mario_model.pth",
         help="Path to the pre-trained model",
     )
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=16, 
+        help="Batch size for training",
+    )
     args = parser.parse_args()
     if args.train:
         base = gym_super_mario_bros.make(ENVIRONMENT, apply_api_compatibility=True)
+        base = JoypadSpace(base, MOVEMENTS)
+        env = wrap_env(base, idle_steps=IDLE_STEPS if args.train else 0)
+        
     else:
         base = gym_super_mario_bros.make(ENVIRONMENT, apply_api_compatibility=True, render_mode="human")
-    base = JoypadSpace(base, MOVEMENTS)
-    env = wrap_env(base, idle_steps=10000)
+        base = JoypadSpace(base, MOVEMENTS)
+        env = wrap_env(base, idle_steps=0, render_mode="human")
+
     env.reset()
     state_dims = env.observation_space.shape
 
     player = Player(
         state_dims    = state_dims,
         action_dims   = env.action_space.n,
-        model         = "SCNN",
+        model         = "CNN",
         learning_rate = LEARNING_RATE,
         gamma         = GAMMA,
         epsilon       = EPSILON,
         epsilon_decay = EPSILON_DECAY,
         epsilon_min   = EPSILON_MIN,
         buffer_size   = BUFFER_SIZE,
-        batch_size    = BATCH_SIZE,
+        batch_size    = args.batch_size,
         sync_rate     = SYNC_RATE,
         loss_fn       = LOSS_FN,
         device        = DEVICE
@@ -72,9 +83,6 @@ def main():
     if not args.train:
         player.load_model(args.load_model)
         print(f"✅ Model loaded from: {args.load_model}")
-
-    next_obs, reward, term, trunc, _ = env.step(env.action_space.sample())
-    done = term or trunc
 
     print(f"Training with device: {DEVICE}")    
     if args.train:
@@ -87,18 +95,22 @@ def main():
                 next_obs, reward, term, trunc, _ = env.step(action)
                 done = term or trunc
                 tot_reward += reward    
+                
                 player.store_experience(obs, action, reward, next_obs, done)
                 player.learn(steps = 50)
                 obs = next_obs
 
                 if done and not args.train:
                     break
+
+        os.makedirs("models", exist_ok=True)
+        player.save_model(os.path.join("models", "mario_model.pth"))
+        print("Model saved to models/mario_model.pth")
     else:
         obs , _ = env.reset()
         done = False
         while not done:
             env.render()
-            time.sleep(0.05)
             action = player.select_action(obs)
             next_obs, reward, term, trunc, _ = env.step(action)
             done = term or trunc
@@ -107,9 +119,7 @@ def main():
             
 
     env.close()
-    os.makedirs("models", exist_ok=True)
-    player.save_model(os.path.join("models", "mario_model.pth"))
-    print("Model saved to models/mario_model.pth")
+
 
 if __name__ == "__main__":
     main()
