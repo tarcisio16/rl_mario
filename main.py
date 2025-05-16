@@ -76,6 +76,7 @@ def main():
     next_obs, reward, term, trunc, _ = env.step(env.action_space.sample())
     done = term or trunc
 
+    print(f"Training with device: {DEVICE}")    
     if args.train:
         for ep in tqdm(range(NUM_EPISODES), desc="Training", unit="episode"):
             done = False
