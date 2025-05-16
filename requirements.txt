@@ -9,3 +9,7 @@ tensordict==0.3.0
 torchrl==0.3.0
 wandb
 opencv-python
+stable_baselines3
+shimmy
+tensorboard
+torchrl

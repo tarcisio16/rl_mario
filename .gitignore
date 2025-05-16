@@ -1,1 +1,7 @@
 mario
+.vscode
+__pycache__
+ppo_mario
+ppo_mario_tb
+__init__.py
+__pycache__
