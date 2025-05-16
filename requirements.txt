@@ -10,3 +10,4 @@ opencv-python
 stable_baselines3
 shimmy
 tensorboard
+gym==0.26.2
