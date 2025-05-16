@@ -10,10 +10,10 @@ from tqdm import tqdm
 import time
 import argparse
 
-ENVIRONMENT   = "SuperMarioBros2-v1"
+ENVIRONMENT   = "SuperMarioBros-v0"
 GAMMA         = 0.99
 MOVEMENTS   = SIMPLE_MOVEMENT
-NUM_EPISODES  = 300
+NUM_EPISODES  = 100
 BATCH_SIZE    = 8
 EPSILON       = 1.0 
 EPSILON_DECAY = 0.99999999975
@@ -49,7 +49,7 @@ def main():
     else:
         base = gym_super_mario_bros.make(ENVIRONMENT, apply_api_compatibility=True, render_mode="human")
     base = JoypadSpace(base, MOVEMENTS)
-    env = wrap_env(base, idle_steps=500)
+    env = wrap_env(base, idle_steps=10000)
     env.reset()
     state_dims = env.observation_space.shape
 
@@ -88,7 +88,7 @@ def main():
                 done = term or trunc
                 tot_reward += reward    
                 player.store_experience(obs, action, reward, next_obs, done)
-                player.learn(steps = 20)
+                player.learn(steps = 50)
                 obs = next_obs
 
                 if done and not args.train:
