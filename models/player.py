@@ -2,9 +2,9 @@ import torch
 import numpy as np
 from tensordict import TensorDict
 from torchrl.data import TensorDictReplayBuffer, LazyMemmapStorage
-from models.nn import CNN, SmallCNN 
+from models.nn import CNN
 from torch.cuda.amp import GradScaler, autocast
-from torch.utils.tensorboard import SummaryWriter
+
 
 
 KEYS = ("obs", "action", "reward", "next_obs", "done")
@@ -26,14 +26,16 @@ class Player:
         loss_fn,
         device, 
         log_dir = "runs",
+        writer = None
         ):
         
+        self.writer = writer
         # size of input and output
         self.input = state_dims
         self.output = action_dims
         self.device = device
 
-        nn = CNN if model == "CNN" else SmallCNN
+        nn = CNN 
         self.online = nn(self.input, self.output).to(self.device)
         self.target = nn(self.input, self.output).to(self.device)
         self.target.load_state_dict(self.online.state_dict())
@@ -63,11 +65,6 @@ class Player:
         
         self.env_steps = 0
         self.learn_steps = 0
-
-
-        # tensorboard
-        log_dir = f"{log_dir}/{model}_{self.input[0]}x{self.input[1]}_{self.output}_{self.batch_size}_{self.sync_rate}"
-        self.writer = SummaryWriter(log_dir)
 
     @torch.no_grad()
     def select_action(self, obs):
@@ -99,15 +96,23 @@ class Player:
         self.target.load_state_dict(torch.load(path))
 
     def learn(self, steps = 10):
+        # warmup: fill buffer before learning
         self.env_steps += 1
-        if len(self.buffer) >= self.batch_size:
+        self.writer.add_scalar("steps_env", self.env_steps, self.env_steps)
+        if self.env_steps < 5_000:
+            return
+        if len(self.buffer) > 10 * self.batch_size:
             self._learn()
 
-        if self.env_steps % self.sync_rate == 0:
-            self.target.load_state_dict(self.online.state_dict())
+
+
 
     def _learn(self):
         self.learn_steps += 1
+        self.writer.add_scalar("steps", self.learn_steps, self.learn_steps)
+        if self.learn_steps % self.sync_rate == 0:
+            self.target.load_state_dict(self.online.state_dict())
+            self.target.eval()
         samples = self.buffer.sample(self.batch_size).to(self.device)
         obs, actions, reward, next_obs, done = (
             samples["obs"],
@@ -123,38 +128,34 @@ class Player:
         
         if self.device == "cuda":
             with autocast():
-                q = self.online(obs)[batch_indices, actions.squeeze()]
+                q = self.online(obs)[batch_indices, actions.view(-1)]
                 best_actions = self.online(next_obs).argmax(dim=1)
                 next_q_target = self.target(next_obs).gather(1, best_actions.unsqueeze(1)).squeeze(1)
                 target_q = reward + self.gamma * next_q_target * (1 - done.float())
+                target_q = torch.clamp(target_q, min=-10.0, max=100.0)
                 loss = self.loss(q, target_q)
             self.scaler.scale(loss).backward()
             self.scaler.step(self.optimizer)
             self.scaler.update()
-            self.writer.add_scalar("loss", loss.item(), self.learn_steps)
-            self.writer.add_scalar("epsilon", self.epsilon, self.learn_steps)
-            self.writer.add_scalar("reward", reward.mean().item(), self.learn_steps)
-            self.writer.add_scalar("q", q.mean().item(), self.learn_steps)
-            self.writer.add_scalar("target_q", target_q.mean().item(), self.learn_steps)
-
         else:
             q = self.online(obs)
-            q =q[batch_indices, actions.squeeze()]
+            q = self.online(obs)[batch_indices, actions.view(-1)]
             with torch.no_grad():
                 best_actions = self.online(next_obs).argmax(dim=1)
                 next_q_target = self.target(next_obs).gather(1, best_actions.unsqueeze(1)).squeeze(1)
                 target_q = reward + self.gamma * next_q_target * (1 - done.float())
+                target_q = torch.clamp(target_q, min=-10.0, max=100.0)
             loss = self.loss(q, target_q)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(self.online.parameters(), 1.0)
             self.optimizer.step()
-            self.writer.add_scalar("loss", loss.item(), self.learn_steps)
-            self.writer.add_scalar("epsilon", self.epsilon, self.learn_steps)
-            self.writer.add_scalar("reward", reward.mean().item(), self.learn_steps)
-            self.writer.add_scalar("q", q.mean().item(), self.learn_steps)
-            self.writer.add_scalar("target_q", target_q.mean().item(), self.learn_steps)
-        self.writer.add_scalar("steps", self.learn_steps, self.learn_steps)
-        
-        
+            self.writer.add_scalar("mean_loss", loss.item(), self.learn_steps)
+            self.writer.add_scalar("mean_q", q.mean().item(), self.learn_steps)
+            self.writer.add_scalar("mean_target_q", target_q.mean().item(), self.learn_steps)
+
+
         self.epsilon = max(self.epsilon * self.epsilon_decay, self.epsilon_min)
+
+        self.writer.add_scalar("steps", self.learn_steps, self.learn_steps)
+
 

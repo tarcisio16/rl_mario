@@ -9,19 +9,21 @@ import numpy as np
 from tqdm import tqdm
 import time
 import argparse
+from torch.utils.tensorboard import SummaryWriter
+import signal
 
 
-ENVIRONMENT   = "SuperMarioBros-v0"
+ENVIRONMENT   = "SuperMarioBros-v3"
 GAMMA         = 0.99
-MOVEMENTS   =  RIGHT_ONLY  
-NUM_EPISODES  = 100
+MOVEMENTS   =  RIGHT_ONLY 
+NUM_EPISODES  = 1000
 EPSILON       = 1.0 
-EPSILON_DECAY = 0.99999975
-EPSILON_MIN   = 0.00001
-LEARNING_RATE = 0.00025
-BUFFER_SIZE   = 10_000
-SYNC_RATE     = 10000
-IDLE_STEPS    = 1_000
+EPSILON_DECAY = 0.99995
+EPSILON_MIN   = 0.01
+LEARNING_RATE = 0.00005
+BUFFER_SIZE   = 50_000
+SYNC_RATE     = 10_000
+IDLE_STEPS    = 2_000
 LOSS_FN       = torch.nn.SmoothL1Loss()
 DEVICE = (
     torch.device("cuda") if torch.cuda.is_available()
@@ -63,6 +65,9 @@ def main():
 
     env.reset()
     state_dims = env.observation_space.shape
+    writer = SummaryWriter(
+        log_dir = f"runs/{ENVIRONMENT}_{MOVEMENTS}_{args.batch_size}"
+    )
 
     player = Player(
         state_dims    = state_dims,
@@ -77,7 +82,8 @@ def main():
         batch_size    = args.batch_size,
         sync_rate     = SYNC_RATE,
         loss_fn       = LOSS_FN,
-        device        = DEVICE
+        device        = DEVICE,
+        writer      = writer,
     )
 
     if not args.train:
@@ -86,36 +92,49 @@ def main():
 
     print(f"Training with device: {DEVICE}")    
     if args.train:
-        for ep in tqdm(range(NUM_EPISODES), desc="Training", unit="episode"):
-            done = False
-            obs, _ = env.reset()
-            tot_reward = 0
-            while not done:
-                action = player.select_action(obs)
-                next_obs, reward, term, trunc, _ = env.step(action)
-                done = term or trunc
-                tot_reward += reward    
-                
-                player.store_experience(obs, action, reward, next_obs, done)
-                player.learn(steps = 50)
-                obs = next_obs
+        try:
+            for ep in tqdm(range(NUM_EPISODES), desc="Training", unit="episode"):
+                done = False
+                obs, info = env.reset()
+                tot_reward = 0
+                prev_x = info.get("x_pos", 0)
+                while not done:
+                    action = player.select_action(obs)
+                    next_obs, reward, term, trunc, info = env.step(action)
+                    done = term or trunc
+                    tot_reward +=  0.01 * (info.get("x_pos", 0) - prev_x) + reward
+                    prev_x = info.get("x_pos", 0)
+                    
+                    player.store_experience(obs, action, reward, next_obs, done)
+                    player.learn(steps=20)
+                    obs = next_obs
 
-                if done and not args.train:
-                    break
+                # update epsilon
 
+                writer.add_scalar("Episode/Reward", tot_reward, ep) 
+                writer.add_scalar("Mario position", info.get("x_pos", 0), ep)
+                writer.add_scalar("Epsilon", player.epsilon, ep)
+                # write memory usage and disk usage
+        except Exception as e:
+            print("Training interrupted:", e)
+        finally:
+            os.makedirs("models", exist_ok=True)
+            player.save_model(os.path.join("models", "mario_model.pth"))
+            print("Model saved to models/mario_model.pth")
         os.makedirs("models", exist_ok=True)
         player.save_model(os.path.join("models", "mario_model.pth"))
         print("Model saved to models/mario_model.pth")
     else:
-        obs , _ = env.reset()
-        done = False
-        while not done:
-            env.render()
-            action = player.select_action(obs)
-            next_obs, reward, term, trunc, _ = env.step(action)
-            done = term or trunc
-            obs = next_obs
-            time.sleep(0.05)
+        for ep in tqdm(range(5), desc="Playing", unit="episode"):
+            obs , info = env.reset()
+            done = False
+            while not done:
+                env.render()
+                action = player.select_action(obs)
+                next_obs, reward, term, trunc, _ = env.step(action)
+                done = term or trunc
+                obs = next_obs
+                time.sleep(0.1)
             
             
 

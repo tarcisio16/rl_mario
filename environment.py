@@ -1,18 +1,75 @@
 import numpy as np
 import gym
+from gym.spaces import Box
 from gym import Wrapper, ObservationWrapper
 from gym.wrappers import ResizeObservation, GrayScaleObservation, FrameStack
+from gym_super_mario_bros.actions import RIGHT_ONLY, SIMPLE_MOVEMENT, COMPLEX_MOVEMENT
 
 
-def wrap_env(env, skip=4, render_mode=None, idle_steps=1000):
-    env = EpisodicLifeMario(env)
-    env = EnvironmentWrapper(env, skip, idle_steps)
-    env = NoopResetEnv(env, noop_max=30)
-    env = MaxAndSkipEnv(env, skip=skip)
-    env = GrayScaleObservation(env)
-    env = ResizeObservation(env, shape=84)
-    env = FrameStack(env, num_stack=4, lz4_compress=False)
+
+def wrap_env(env, skip=4, idle_steps=1000, clip_rewards=True, render_mode=None):
+    env = MaxAndSkipEnv(env, skip=skip)               # 1. Skip and max-pool frames
+    env = GrayScaleObservation(env)                   # 2. Convert to grayscale
+    env = ResizeObservation(env, shape=84)            # 3. Resize to 84x84
+    env = RepeatActionWrapper(env, repeat=4)       # 4. Repeat actions
+    env = FrameStack(env, num_stack=4, lz4_compress=True)  # 4. Stack 4 frames
+    if clip_rewards:
+        env = ClipRewardEnv(env)                      # 5. Clip rewards
+    env = EpisodicLifeMario(env)                      # 6. Make lives episodic
+    #env = EnvironmentWrapper(env, idle_steps=idle_steps)  # 7. Idle check
     return env
+        
+
+class RepeatActionWrapper(gym.Wrapper):
+    def __init__(self, env, repeat=4):
+        super().__init__(env)
+        self.repeat = repeat
+
+    def step(self, action):
+        total_reward = 0.0
+        terminated = False
+        truncated = False
+        # if action is not not noop
+        if action == 0:
+            obs , reward, terminated, truncated, info = self.env.step(action)
+            return obs, reward, terminated, truncated, info
+        for _ in range(self.repeat):
+            obs, reward, terminated, truncated, info = self.env.step(action)
+            total_reward += reward
+            if terminated or truncated:
+                break
+        return obs, total_reward, terminated, truncated, info
+
+
+class EnvironmentWrapper(Wrapper):
+    def __init__(self, env, idle_steps=1000, delta = 2):
+        super().__init__(env)
+        self.idle_steps   = idle_steps
+        self.last_x     = 0
+        self.idle_counter = 0
+        self.delta        = delta
+
+    def reset(self, **kwargs):
+        obs, info = self.env.reset(**kwargs)
+        assert info.get('x_pos', 0) is not None, "Environment must provide 'x_pos' in info"
+        self.last_x = info.get('x_pos', 0)
+        self.idle_counter  = 0
+        return obs, info
+
+    def step(self, action):
+        for _ in range(self.idle_steps):
+            obs, reward, terminated, truncated, info = self.env.step(action)
+            current_x = info.get('x_pos', 0)
+            if abs(current_x - self.last_x) < self.delta:
+                self.idle_counter += 1
+            else:
+                self.idle_counter = 0
+            self.last_x = current_x
+            if self.idle_counter >= self.idle_steps:
+                truncated = True
+
+        return obs, reward, terminated, truncated, info
+
 
 class EpisodicLifeMario(gym.Wrapper):
     def __init__(self, env):
@@ -54,7 +111,7 @@ class EpisodicLifeMario(gym.Wrapper):
             obs, info = self.env.reset(**kwargs)
         else:
             # no-op step to advance from terminal/lost life state
-            obs, _, _, _ ,_= self.env.step(0)
+            obs, _, _, _ ,info= self.env.step(0)
         self.lives = self._get_lives()
         return obs, info 
 
@@ -69,6 +126,8 @@ class MaxAndSkipEnv(gym.Wrapper):
     def step(self, action):
         """Repeat action, sum reward, and max over last observations."""
         total_reward = 0.0
+        terminated = False
+        truncated = False
         for i in range(self._skip):
             obs, reward, terminated, truncated, info = self.env.step(action)
             if i == self._skip - 2:
@@ -90,73 +149,6 @@ class ClipRewardEnv(gym.RewardWrapper):
         gym.RewardWrapper.__init__(self, env)
 
     def reward(self, reward):
-        """Bin reward to {+1, 0, -1} by its sign."""
-        return np.sign(reward)
+        # normalize reward between -1 and 1
+        return np.sign(reward) * (np.sqrt(np.abs(reward)) - 1)
 
-
-
-class NoopResetEnv(gym.Wrapper):
-    def __init__(self, env, noop_max=30):
-        """Sample initial states by taking random number of no-ops on reset.
-        No-op is assumed to be action 0.
-        """
-        gym.Wrapper.__init__(self, env)
-        self.noop_max = noop_max
-        self.override_num_noops = None
-        self.noop_action = 0
-
-    def reset(self, **kwargs):
-        """Do no-op action for a number of steps in [1, noop_max]."""
-        self.env.reset(**kwargs)
-        if self.override_num_noops is not None:
-            noops = self.override_num_noops
-        else:
-            noops = self.np_random.integers(
-                1, self.noop_max + 1
-            )  # pylint: disable=E1101
-        assert noops > 0
-        obs, info = None, {}
-        for _ in range(noops):
-            obs, _, terminated, truncated ,info = self.env.step(self.noop_action)
-            if terminated or truncated:
-                obs, info = self.env.reset(**kwargs)
-        return obs, info 
-
-    def step(self, ac):
-        return self.env.step(ac)
-
-
-
-class EnvironmentWrapper(Wrapper):
-    def __init__(self, env, skip, idle_steps=1000, render_mode=None):
-        super().__init__(env)
-        assert isinstance(env.action_space, gym.spaces.Discrete), "Only discrete action spaces are supported"
-        self.skip = skip
-        self.idle_steps = idle_steps
-        self.last_position = None
-        self.idle_counter = 0
-
-    def step(self, action):
-        total_reward = 0.0
-        terminated = False
-        truncated = False
-        info = {}
-
-        for _ in range(self.skip):
-            obs, reward, terminated, truncated, info = self.env.step(action)
-            current_position = info.get('position', 0)
-            total_reward += reward
-            if self.last_position is not None and current_position == self.last_position:
-                self.idle_counter += 1
-            else:
-                self.idle_counter = 0
-            if terminated or truncated:
-                break
-            if self.idle_counter >= self.idle_steps and self.idle_steps > 0:
-                self.idle_counter = 0
-                truncated = True
-                break
-            self.last_position = current_position
-            
-
-        return obs, total_reward, terminated, truncated, info
