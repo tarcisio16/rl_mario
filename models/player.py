@@ -99,7 +99,7 @@ class Player:
         # warmup: fill buffer before learning
         self.env_steps += 1
         self.writer.add_scalar("steps_env", self.env_steps, self.env_steps)
-        if self.env_steps < 5_000:
+        if self.env_steps < 7_500:
             return
         if len(self.buffer) > 10 * self.batch_size:
             self._learn()
